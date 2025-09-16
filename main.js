@@ -1,4 +1,4 @@
-function addDebugLog(message) {
+ function addDebugLog(message) {
         const debugPanel = document.getElementById('debug-panel');
         const time = new Date().toLocaleTimeString();
         const logEntry = document.createElement('div');
@@ -47,6 +47,21 @@ function addDebugLog(message) {
             loginSection.classList.add('hidden');
             trackingSection.classList.remove('hidden');
             namaInput.value = user.displayName || user.email;
+
+            // --- KODE BARU: Simpan data pengguna ke node 'users' ---
+            const userRef = db.ref('users/' + user.uid);
+            userRef.once('value').then(snapshot => {
+                if (!snapshot.exists()) {
+                    userRef.set({
+                        nama: user.displayName,
+                        email: user.email,
+                        userId: user.uid,
+                        lastLogin: new Date().toISOString()
+                    });
+                }
+            });
+            // --------------------------------------------------------
+
             initializeTracker();
         } else {
             loginSection.classList.remove('hidden');
