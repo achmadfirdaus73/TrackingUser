@@ -1,0 +1,57 @@
+.container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease-in-out;
+}
+
+.container.tracking-active {
+    background: #eef2ff;
+}
+
+.status-box {
+    background-color: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.indicator-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.indicator-dot.safe {
+    background-color: #38a169;
+}
+
+.indicator-dot.warning {
+    background-color: #ecc94b;
+}
+
+.indicator-dot.danger {
+    background-color: #e53e3e;
+}
+
+.debug-panel {
+    background-color: #1a202c;
+    color: #48bb78;
+    font-family: 'Courier New', Courier, monospace;
+    height: 200px;
+    overflow-y: scroll;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 24px;
+    font-size: 12px;
+}
+
+/* Tombol Peringatan .iOS */
+#permissionButton {
+    display: none;
+}

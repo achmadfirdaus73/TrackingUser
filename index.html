@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>user</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="bg-gray-200 min-h-screen flex items-center justify-center">
+    <div class="container space-y-6">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Tracking Karyawan</h1>
+        <p class="text-center text-gray-600">Aplikasi ini melacak lokasi Anda secara real-time untuk keperluan absensi.</p>
+
+        <div id="login-section" class="space-y-4 text-center">
+            <button id="google-login-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform active:scale-95 flex items-center justify-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M22.000 12.000c0-1.284-.111-2.505-.316-3.693l-.014-.092H12v2.249h5.641c-.244 1.282-.997 2.373-2.071 3.12l-.248.188L17.276 18.06l.307.243c2.064-1.92 3.238-4.708 3.238-7.903z" />
+                    <path d="M12.000 22.000c2.812 0 5.176-.948 6.899-2.57l-.307-.243-2.671-2.005-.248.188c-1.074.747-2.617 1.21-4.273 1.21-3.298 0-6.101-2.083-7.112-4.942l-.271-.795-2.738.205-.181.82c1.232 3.141 4.316 5.487 7.747 5.487z" />
+                    <path d="M4.888 14.112c-.228-.68-.358-1.405-.358-2.112s.13-.105.358-.888l-.18-.82-2.738-.205-.181.82c-.524 1.272-.81 2.651-.81 4.102 0 1.45.286 2.83.81 4.102l.181.82 2.738-.205.18-.82z" />
+                    <path d="M12.000 4.000c1.789 0 3.328.614 4.542 1.772l.279.248 2.302-2.179-.279-.248C17.176 4.948 14.812 4 12 4 8.569 4 5.485 6.345 4.253 9.486l.18.82 2.738.205.18-.82C7.899 6.083 10.702 4 12 4z" />
+                </svg>
+                Login dengan Google
+            </button>
+        </div>
+
+        <div id="tracking-section" class="hidden space-y-6">
+            <div>
+                <label for="nama-karyawan" class="block text-sm font-medium text-gray-700">Nama Anda</label>
+                <input type="text" id="nama-karyawan" placeholder="Masukkan nama Anda" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+            </div>
+
+            <div class="flex space-x-4">
+                <button id="startButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform active:scale-95">
+                    Mulai Tracking
+                </button>
+                <button id="stopButton" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform active:scale-95" disabled>
+                    Berhenti Tracking
+                </button>
+            </div>
+
+            <button id="permissionButton" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform active:scale-95 mt-4">
+                Berikan Izin Gyroscope (iOS)
+            </button>
+            
+            <button id="logout-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform active:scale-95 mt-4">
+                Logout
+            </button>
+        </div>
+
+        <div class="status-box space-y-2">
+            <h2 class="text-lg font-semibold text-gray-800">Status</h2>
+            <div class="flex items-center text-sm font-medium">
+                <span class="indicator-dot safe" id="connection-indicator"></span>
+                <span id="status-message" class="text-gray-700">Menunggu inisialisasi...</span>
+            </div>
+            <div class="flex items-center text-sm font-medium text-gray-700">
+                <span class="indicator-dot warning" id="gps-indicator"></span>
+                <span id="gps-status">GPS: <span id="accuracy">0</span></span>
+            </div>
+            <div class="flex items-center text-sm font-medium text-gray-700">
+                <span class="indicator-dot safe" id="fake-indicator"></span>
+                <span>Updates: <span id="update-count">0</span></span>
+            </div>
+        </div>
+
+        <div class="debug-panel" id="debug-panel">
+            <h3 class="text-lg font-bold">Log</h3>
+        </div>
+    </div>
+    <script src="main.js">
+        
+    </script>
+</body>
+
+</html>
