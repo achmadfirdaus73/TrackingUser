@@ -1,142 +1,241 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyCdT2nWv0fF6jZmDfslIUvRKFun18rStWs",
-  authDomain: "tracking-654e3.firebaseapp.com",
-  databaseURL: "https://tracking-654e3-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "tracking-654e3",
-  storageBucket: "tracking-654e3.firebasestorage.app",
-  messagingSenderId: "61074342637",
-  appId: "1:61074342637:web:ee566c965c595668b5c2e4",
-  measurementId: "G-Q5ZXKE7PTL"
-};
-firebase.initializeApp(firebaseConfig);
-
-new Vue({
-  el: '#app',
-  vuetify: new Vuetify(),
-  data: () => ({
-    userLoggedIn: false,
-    userNameSaved: false,
-    nama: '',
-    photoURL: '',
-    isTracking: false,
-    watchId: null,
-    location: null,
-    snackbar: { show: false, message: '', color: '', timeout: 3000 }
-  }),
-  mounted() {
-    firebase.auth().onAuthStateChanged(user => {
-      this.userLoggedIn = !!user;
-      if (user) {
-        this.photoURL = user.photoURL || '';
-        this.checkUserProfile(user);
-      } else {
-        this.userNameSaved = false;
-        this.photoURL = '';
-        this.stopTracking();
-      }
-    });
-  },
-  methods: {
-    addNotification(color, message) {
-      this.snackbar.color = color;
-      this.snackbar.message = message;
-      this.snackbar.show = true;
-    },
-    async loginWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      try {
-        await firebase.auth().signInWithPopup(provider);
-      } catch (error) {
-        this.addNotification('red', 'Gagal login: ' + error.message);
-      }
-    },
-    async logout() {
-      try {
-        await firebase.auth().signOut();
-      } catch (error) {
-        this.addNotification('red', 'Gagal logout: ' + error.message);
-      }
-    },
-    checkUserProfile(user) {
-      const userRef = firebase.database().ref('users/' + user.uid);
-      userRef.once('value', snapshot => {
-        if (snapshot.exists() && snapshot.val().nama) {
-          this.userNameSaved = true;
-          this.nama = snapshot.val().nama;
-          this.photoURL = snapshot.val().photoURL || user.photoURL || '';
-        } else {
-          this.userNameSaved = false;
+          apiKey: "AIzaSyCdT2nWv0fF6jZmDfslIUvRKFun18rStWs",
+          authDomain: "tracking-654e3.firebaseapp.com",
+          databaseURL: "https://tracking-654e3-default-rtdb.asia-southeast1.firebasedatabase.com",
+          projectId: "tracking-654e3",
+          storageBucket: "tracking-654e3.firebasestorage.app",
+          messagingSenderId: "61074342637",
+          appId: "1:61074342637:web:ee566c965c595668b5c2e4",
+          measurementId: "G-Q5ZXKE7PTL"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const profileScreen = document.getElementById('profileScreen');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const nameInput = document.getElementById('nameInput');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+        const startTrackingBtn = document.getElementById('startTrackingBtn');
+        const stopTrackingBtn = document.getElementById('stopTrackingBtn');
+        const profilePicture = document.getElementById('profilePicture');
+        const displayName = document.getElementById('displayName');
+        const displayEmail = document.getElementById('displayEmail');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const trackingStatus = document.getElementById('trackingStatus');
+        const locationInfo = document.getElementById('locationInfo');
+        const latValue = document.getElementById('latValue');
+        const lngValue = document.getElementById('lngValue');
+        const accuracyValue = document.getElementById('accuracyValue');
+        const updateTime = document.getElementById('updateTime');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        // State
+        let currentUser = null;
+        let isTracking = false;
+        let watchId = null;
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        
+        // Initialize Dark Mode
+        if (isDarkMode) {
+          document.body.classList.add('dark');
+          darkModeToggle.innerHTML = '<i class="fas fa-sun text-yellow-400"></i>';
         }
-      });
-    },
-    saveUserName() {
-      const user = firebase.auth().currentUser;
-      if (!user) return;
-      if (!this.nama) {
-        this.addNotification('red', 'Nama tidak boleh kosong');
-        return;
-      }
-      firebase.database().ref('users/' + user.uid).set({
-        userId: user.uid,
-        nama: this.nama,
-        email: user.email,
-        photoURL: user.photoURL || ''
-      }).then(() => {
-        this.userNameSaved = true;
-        this.addNotification('green', 'Profil berhasil disimpan');
-      });
-    },
-    startTracking() {
-      if (this.isTracking) return;
-      if (!("geolocation" in navigator)) {
-        this.addNotification('error', 'Geolocation tidak didukung oleh browser Anda.');
-        return;
-      }
-      this.isTracking = true;
-      this.watchId = navigator.geolocation.watchPosition(
-        this.onPositionUpdate,
-        this.onPositionError,
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-      );
-      this.addNotification('green', 'Tracking dimulai!');
-    },
-    stopTracking() {
-      if (!this.isTracking) return;
-      navigator.geolocation.clearWatch(this.watchId);
-      this.isTracking = false;
-      this.addNotification('info', 'Tracking dihentikan.');
-      this.updateLocationStatus('offline');
-    },
-    onPositionUpdate(position) {
-      this.location = position.coords;
-      this.updateLocationStatus('active', position.coords);
-    },
-    onPositionError(error) {
-      this.isTracking = false;
-      let errorMessage = 'GPS Eror: Cek izin lokasi.';
-      switch (error.code) {
-        case error.PERMISSION_DENIED: errorMessage = 'GPS Eror: Izin lokasi ditolak.'; break;
-        case error.POSITION_UNAVAILABLE: errorMessage = 'GPS Eror: Lokasi tidak tersedia.'; break;
-        case error.TIMEOUT: errorMessage = 'GPS Eror: Waktu tunggu lokasi habis.'; break;
-      }
-      this.addNotification('red', errorMessage);
-    },
-    updateLocationStatus(status, coords = null) {
-      const userId = firebase.auth().currentUser.uid;
-      const locationRef = firebase.database().ref('location-data/' + userId).child('latest');
-      const now = new Date();
-
-      const data = {
-        status: status,
-        localTime: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-        timestamp: now.toISOString()
-      };
-      if (coords) {
-        data.lat = coords.latitude;
-        data.lng = coords.longitude;
-        data.accuracy = coords.accuracy;
-      }
-      locationRef.set(data);
-    }
-  }
-});
+        
+        // Show Toast Notification
+        function showToast(message, duration = 3000) {
+          toastMessage.textContent = message;
+          toast.classList.remove('translate-y-full', 'opacity-0');
+          
+          setTimeout(() => {
+            toast.classList.add('translate-y-full', 'opacity-0');
+          }, duration);
+        }
+        
+        // Dark Mode Toggle
+        darkModeToggle.addEventListener('click', () => {
+          isDarkMode = !isDarkMode;
+          localStorage.setItem('darkMode', isDarkMode);
+          
+          if (isDarkMode) {
+            document.body.classList.add('dark');
+            darkModeToggle.innerHTML = '<i class="fas fa-sun text-yellow-400"></i>';
+          } else {
+            document.body.classList.remove('dark');
+            darkModeToggle.innerHTML = '<i class="fas fa-moon text-gray-700"></i>';
+          }
+        });
+        
+        // Login with Google
+        loginBtn.addEventListener('click', async () => {
+          try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await auth.signInWithPopup(provider);
+          } catch (error) {
+            showToast('Login gagal: ' + error.message);
+          }
+        });
+        
+        // Logout
+        logoutBtn.addEventListener('click', async () => {
+          try {
+            await auth.signOut();
+            showToast('Logout berhasil!');
+          } catch (error) {
+            showToast('Logout gagal: ' + error.message);
+          }
+        });
+        
+        // Save Profile
+        saveProfileBtn.addEventListener('click', () => {
+          const name = nameInput.value.trim();
+          if (!name) {
+            showToast('Nama tidak boleh kosong');
+            return;
+          }
+          
+          database.ref(`users/${currentUser.uid}`).set({
+            name: name,
+            email: currentUser.email,
+            photoURL: currentUser.photoURL,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+          }).then(() => {
+            displayName.textContent = name;
+            dashboardSection.classList.remove('hidden');
+            showToast('Profil berhasil disimpan');
+          }).catch(error => {
+            showToast('Gagal menyimpan profil: ' + error.message);
+          });
+        });
+        
+        // Start Tracking
+        startTrackingBtn.addEventListener('click', () => {
+          if (!navigator.geolocation) {
+            showToast('Geolocation tidak didukung oleh browser Anda');
+            return;
+          }
+          
+          isTracking = true;
+          updateTrackingUI();
+          showToast('Tracking dimulai');
+          
+          watchId = navigator.geolocation.watchPosition(
+            (position) => {
+              const { latitude, longitude, accuracy } = position.coords;
+              
+              // Update UI
+              latValue.textContent = latitude.toFixed(6);
+              lngValue.textContent = longitude.toFixed(6);
+              accuracyValue.textContent = accuracy.toFixed(2);
+              updateTime.textContent = new Date().toLocaleTimeString();
+              locationInfo.classList.remove('hidden');
+              
+              // Update to Firebase
+              database.ref(`users/${currentUser.uid}/location`).set({
+                lat: latitude,
+                lng: longitude,
+                accuracy: accuracy,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+              });
+              
+              database.ref(`users/${currentUser.uid}/status`).set('active');
+            },
+            (error) => {
+              showToast('Error: ' + error.message);
+              stopTracking();
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 20000,
+              maximumAge: 0
+            }
+          );
+        });
+        
+        // Stop Tracking
+        stopTrackingBtn.addEventListener('click', stopTracking);
+        
+        function stopTracking() {
+          if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+          }
+          
+          isTracking = false;
+          updateTrackingUI();
+          showToast('Tracking dihentikan');
+          
+          if (currentUser) {
+            database.ref(`users/${currentUser.uid}/status`).set('inactive');
+          }
+        }
+        
+        function updateTrackingUI() {
+          if (isTracking) {
+            statusIndicator.classList.add('bg-green-500');
+            statusIndicator.classList.remove('bg-red-500');
+            trackingStatus.textContent = 'Tracking Aktif';
+            startTrackingBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            startTrackingBtn.disabled = true;
+            stopTrackingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            stopTrackingBtn.disabled = false;
+          } else {
+            statusIndicator.classList.add('bg-red-500');
+            statusIndicator.classList.remove('bg-green-500');
+            trackingStatus.textContent = 'Tracking Nonaktif';
+            startTrackingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            startTrackingBtn.disabled = false;
+            stopTrackingBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            stopTrackingBtn.disabled = true;
+          }
+        }
+        
+        // Auth State Observer
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            currentUser = user;
+            
+            // Update profile picture
+            if (user.photoURL) {
+              profilePicture.innerHTML = `<img src="${user.photoURL}" alt="Profile" class="w-16 h-16 rounded-full object-cover">`;
+            }
+            
+            displayName.textContent = user.displayName || 'User';
+            displayEmail.textContent = user.email;
+            
+            // Check if user has profile
+            database.ref(`users/${user.uid}`).once('value').then((snapshot) => {
+              const userData = snapshot.val();
+              
+              if (userData && userData.name) {
+                nameInput.value = userData.name;
+                dashboardSection.classList.remove('hidden');
+              } else {
+                dashboardSection.classList.add('hidden');
+              }
+              
+              // Show profile screen
+              loginScreen.classList.add('hidden');
+              profileScreen.classList.remove('hidden');
+            }).catch((error) => {
+              showToast('Error: ' + error.message);
+            });
+          } else {
+            currentUser = null;
+            loginScreen.classList.remove('hidden');
+            profileScreen.classList.add('hidden');
+            
+            // Stop tracking if active
+            if (isTracking) {
+              stopTracking();
+            }
+          }
+        });
